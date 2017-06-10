@@ -1,0 +1,121 @@
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>D3.js</title>
+    <style>
+    .d3graph {
+      border:1px solid #ccc;
+      margin-bottom:10px
+    }
+    </style>
+</head>
+<body>
+  <div id="d3graph" class="d3graph"></div>
+  <div>
+    <input id="btn" value="計測" type="button">
+  </div>
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+  <script src="http://d3js.org/d3.v4.min.js"></script>
+  <script>
+  var stage;
+  var $graph = $("#d3graph");
+  var points1 = [];
+  var points2 = [];
+  var margin = {top: 40, right: 40, bottom: 40, left: 100};
+  var boderLine = 50; // 線の長さ
+
+  // 一本目
+  var line1 = d3.line()
+  .x(function(d, i){ return i * boderLine })
+  .y(function(d, i){ return d * 20 });
+
+  // 二本目
+  var line2 = d3.line()
+  .x(function(d, i){ return i * boderLine })
+  .y(function(d, i){ return d * 20 });
+
+  function update() {
+      // 削除する
+      stage.selectAll("path").remove();
+
+      // 描画する
+      // 一本目の線
+      stage.append("path")
+      .attr("d", line1(points1))
+      .attr("stroke", "#38b48b")
+      .attr("fill", "none")
+      .attr("opacity", 1);
+
+      // 一本目の線の値
+      stage.selectAll(".high_text1")
+      .data(points1)
+      .enter()
+      .append("text")
+      .attr("class", "high_text1")
+      .text(function(d) { return d; })
+      .attr("font-size", "12px")
+      .attr("fill", "#38b48b")
+      .attr("x", line1.x())
+      .attr("y", line1.y());
+
+      // 二本目の線
+      stage.append("path")
+      .attr("d", line2(points2))
+      .attr("stroke", "#2f5d50")
+      .attr("fill", "none")
+      .attr("opacity", 1);
+
+      // 二本目の線の値
+      stage.selectAll(".high_text2")
+      .data(points2)
+      .enter()
+      .append("text")
+      .attr("class", "high_text2")
+      .text(function(d) { return d; })
+      .attr("font-size", "12px")
+      .attr("fill", "#2f5d50")
+      .attr("x", line2.x())
+      .attr("y", line2.y());
+  }
+
+  $(function() {
+      // グラフ領域を生成
+      stage = d3.select("#d3graph").append("svg:svg").attr("width", $graph.width()).attr("height", 300);
+
+    // ボタンをクリック
+    $('#btn').on('click', function() {
+      // 計測１した結果を取得
+      points1.push(printElapsedTime(function() {
+        for (var i = 0; i < 10000000; i++) {}
+      }));
+
+      // 計測１した結果、値の長さがグラフの幅を超えそうであれば古い値を消す
+      if (points1.length > $graph.width()/boderLine) {
+          points1.shift();
+      }
+
+      // 計測２した結果を取得
+      points2.push(printElapsedTime(function() {
+        for (var i = 10000000; i > 0; i--) {}
+      }));
+
+      // 計測２した結果、値の長さがグラフの幅を超えそうであれば古い値を消す
+      if (points2.length > $graph.width()/boderLine) {
+          points2.shift();
+      }
+
+      // 描画
+      update();
+    });
+  })
+
+  // 計測処理
+  function printElapsedTime(fTest) {
+    var nStartTime = Date.now();
+    fTest();
+    var nEndTime = Date.now();
+    return nEndTime - nStartTime;
+  }
+  </script>
+</body>
+</html>

@@ -22,7 +22,6 @@
     stroke: steelblue;
     stroke-width: 1.5px;
   }
-
   </style>
   <svg width="960" height="500"></svg>
   <script src="https://d3js.org/d3.v4.js"></script>
@@ -53,48 +52,67 @@
 
   // x軸
   var x = d3.scaleTime()
-          .rangeRound([0, width]);
+  .rangeRound([0, width]);
 
   // y軸
   var y = d3.scaleLinear()
-          .rangeRound([height, 0]);
+  .rangeRound([height, 0]);
 
   // 線を生成
   var line = d3.line()
-            .x(function(d) { return x(parseTime(d.date)); })
-            .y(function(d) { return y(+d.close); });
+  .x(function(d) { return x(d.date); })
+  .y(function(d) { return y(d.close); });
 
-  // データの入力（domain = 入力）http://ja.d3js.info/alignedleft/tutorials/d3/scales/
-  x.domain(d3.extent(data, function(d) { return parseTime(d.date); }));
-  y.domain(d3.extent(data, function(d) { return +d.close; }));
 
-  // グラフにg要素を追加（x軸のやつ）
-  g.append("g")
-  .attr("transform", "translate(0," + height + ")")
-  .call(d3.axisBottom(x))
-  .select(".domain")
-  .remove();
+  function render() {
+    data.forEach(function(d) {
+      d.date = parseTime(d.date);
+      d.close = +d.close;
+    });
 
-  // グラフにg要素を追加(y軸のやつ)
-  g.append("g")
-  .call(d3.axisLeft(y))
-  .append("text")
-  .attr("fill", "#000")
-  .attr("transform", "rotate(-90)")
-  .attr("y", 6)
-  .attr("dy", "0.71em")
-  .attr("text-anchor", "end")
-  .text("Price ($)");
+    // データの入力（domain = 入力）http://ja.d3js.info/alignedleft/tutorials/d3/scales/
+    x.domain(d3.extent(data, function(d) { return d.date; }));
+    y.domain(d3.extent(data, function(d) { return d.close; }));
 
-  // データを元にパスを引く
-  g.append("path")
-  .datum(data)
-  .attr("fill", "none")
-  .attr("stroke", "steelblue")
-  .attr("stroke-linejoin", "round")
-  .attr("stroke-linecap", "round")
-  .attr("stroke-width", 1.5)
-  .attr("d", line);
+    // グラフにg要素を追加（x軸のやつ）
+    g.append("g")
+    .attr("transform", "translate(0," + height + ")")
+    .call(d3.axisBottom(x))
+    .select(".domain")
+    .remove();
+
+    // グラフにg要素を追加(y軸のやつ)
+    g.append("g")
+    .call(d3.axisLeft(y))
+    .append("text")
+    .attr("fill", "#000")
+    .attr("transform", "rotate(-90)")
+    .attr("y", 6)
+    .attr("dy", "0.71em")
+    .attr("text-anchor", "end")
+    .text("Price ($)");
+
+    // データを元にパスを引く
+    g.append("path")
+    .datum(data)
+    .attr("fill", "none")
+    .attr("stroke", "steelblue")
+    .attr("stroke-linejoin", "round")
+    .attr("stroke-linecap", "round")
+    .attr("stroke-width", 1.5)
+    .attr("d", line);
+  }
+
+  function clear() {
+    svg.selectAll("path").remove();
+  }
+
+  render();
+  setInterval(function() {
+    data.push({date: '24-Apr-07', close: '93.24'});
+    clear();
+    render();
+  }, 1000);
   </script>
 </body>
 </html>
